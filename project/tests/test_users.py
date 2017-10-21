@@ -1,6 +1,8 @@
 import json
 
 from project.tests.base import BaseTestCase
+from project import db
+from project.api.models import User
 
 class TestUserService(BaseTestCase):
     """Tests for the Users Service."""
@@ -18,14 +20,14 @@ class TestUserService(BaseTestCase):
             response = self.client.post(
                 '/users',
                 data = json.dumps(dict(
-                    username='test',
-                    email='test@tester.com'
+                    username='tester',
+                    email='tester@test.com'
                 )),
                 content_type='application/json'
             )
         data = json.loads(response.data.decode())
         self.assertEqual(response.status_code, 201)
-        self.assertIn('test@tester.com was added!', data['message'])
+        self.assertIn('tester@test.com was added!', data['message'])
         self.assertIn('success', data['status'])
 
 
@@ -48,7 +50,7 @@ class TestUserService(BaseTestCase):
         with self.client:
             response = self.client.post(
                 '/users',
-                data = json.dumps(dict(email='test@tester.com')),
+                data = json.dumps(dict(email='tester@test.com')),
                 content_type='application/json'
             )
         data = json.loads(response.data.decode())
@@ -64,15 +66,15 @@ class TestUserService(BaseTestCase):
                 '/users',
                 data=json.dumps(dict(
                     username='test',
-                    email='test@tester.com'
+                    email='tester@test.com'
                 )),
                 content_type='application/json',
             )
             response = self.client.post(
                 '/users',
                 data=json.dumps(dict(
-                    username='test',
-                    email='test@tester.com'
+                    username='tester',
+                    email='tester@test.com'
                 )),
                 content_type='application/json',
             )
@@ -81,3 +83,18 @@ class TestUserService(BaseTestCase):
             self.assertIn(
                 'Sorry. That email already exists.', data['message'])
             self.assertIn('fail', data['status'])
+
+
+    def test_single_user(self):
+        """Ensure get single user behaves correctly"""
+        user = User(username='tester', email='tester@test.com')
+        db.session.add(user)
+        db.session.commit()
+        with self.client:
+            response = self.client.get(f'/users/{user.id}')
+            data = json.loads(response.data.decode())
+            self.assertEqual(response.status_code, 200)
+            self.assertTrue('created_at' in data['data'])
+            self.assertIn('tester', data['data']['username'])
+            self.assertIn('tester@test.com', data['data']['email'])
+            self.assertIn('success', data['status'])

@@ -58,3 +58,17 @@ def add_user():
         'message': f'{email} was added!'
     }
     return jsonify(response_object), 201
+
+@users_blueprint.route('/users/<user_id>', methods=['GET'])
+def get_single_user(user_id):
+    """Get single user details"""
+    user = User.query.filter_by(id=user_id).first()
+    response_object = {
+        'status': 'success',
+        'data': {
+            'username': user.username,
+            'email': user.email,
+            'created_at': user.created_at
+        }
+    }
+    return jsonify(response_object), 200
