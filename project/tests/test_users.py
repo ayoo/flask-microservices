@@ -4,6 +4,15 @@ from project.tests.base import BaseTestCase
 from project import db
 from project.api.models import User
 
+
+#helper functions
+def add_user(username, email):
+    user = User(username=username, email=email)
+    db.session.add(user)
+    db.session.commit()
+    return user
+
+
 class TestUserService(BaseTestCase):
     """Tests for the Users Service."""
 
@@ -88,9 +97,7 @@ class TestUserService(BaseTestCase):
 
     def test_single_user(self):
         """Ensure get single user behaves correctly"""
-        user = User(username='tester', email='tester@test.com')
-        db.session.add(user)
-        db.session.commit()
+        user = add_user('tester', 'tester@test.com')
         with self.client:
             response = self.client.get(f'/users/{user.id}')
             data = json.loads(response.data.decode())
@@ -119,3 +126,23 @@ class TestUserService(BaseTestCase):
             self.assertEqual(response.status_code, 404)
             self.assertIn('User does not exist', data['message'])
             self.assertIn('fail', data['status'])
+
+
+    def test_all_users(self):
+        """Ensure get all users behave correctly."""
+        add_user('tester1', 'tester1@test.com')
+        add_user('tester2', 'tester2@test.com')
+        with self.client:
+            response = self.client.get('/users')
+            data = json.loads(response.data.decode())
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(len(data['data']['users']), 2)
+            self.assertTrue('created_at' in data['data']['users'][0])
+            self.assertTrue('created_at' in data['data']['users'][1])
+            self.assertIn('tester1', data['data']['users'][0]['username'])
+            self.assertIn(
+                'tester1@test.com', data['data']['users'][0]['email'])
+            self.assertIn('tester2', data['data']['users'][1]['username'])
+            self.assertIn(
+                'tester2@test.com', data['data']['users'][1]['email'])
+            self.assertIn('success', data['status'])
