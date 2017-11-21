@@ -20,6 +20,9 @@ $ docker ps
 ###### to remove docker image
 $ docker rmi image
 
+###### to remove stopped container
+$ docker rm -f $(docker ps -a -q)
+
 ###### to remove all dangling images
 $ docker rmi $(docker images -f "dangling=true" -q)
 
