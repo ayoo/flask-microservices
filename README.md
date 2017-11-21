@@ -28,6 +28,7 @@ $ docker rmi $(docker images -f "dangling=true" -q)
 
 ###### to setup database for the first time
 $ docker-compose run users-service python manage.py recreate_db
+
 $ docker-compose run users-service python manage.py seed_db
 
 ###### to run tests
